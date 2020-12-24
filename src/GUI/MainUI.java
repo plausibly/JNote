@@ -3,9 +3,13 @@ package GUI;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -25,7 +29,6 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
 
-
 public class MainUI extends Application {
     private TextArea txtInput;
     private Stage pStage;
@@ -34,6 +37,7 @@ public class MainUI extends Application {
 
     /**
      * Request to save/load to a file.
+     * 
      * @param txt   The TextArea object containing the input being saved
      * @param stage The Stage object of the UI
      * @param type  Boolean, true means save the file and false is load a file
@@ -47,7 +51,7 @@ public class MainUI extends Application {
             System.out.println("Save requested...");
             choose.setTitle("Save File");
             File fSave = choose.showSaveDialog(stage);
-            if (fSave != null) {    // need to fix so it maintains formatting
+            if (fSave != null) { // need to fix so it maintains formatting
                 System.out.println("Writing...");
                 try {
                     BufferedWriter writeFile = new BufferedWriter(new FileWriter(fSave));
@@ -63,35 +67,75 @@ public class MainUI extends Application {
             }
 
         } else {
-            System.out.println("Open iniat");
-            choose.setTitle("Open File");
-            File fOpen = choose.showOpenDialog(stage);
-
-            if (fOpen != null) {
-                try {
-                    txt.setText("");
-                    BufferedReader rFile = new BufferedReader(new FileReader(fOpen));
-                    String curr = "";
-
-                    rFile.close();
-                } catch (IOException ex) {
-                    ex.printStackTrace();
-                }
-
-            } else {
-                System.out.println("Cancelled");
+            System.out.println("Open iniated");
+            ButtonType conf = ButtonType.NO;
+            if (this.newChanges)
+                conf = confirmation();
+            if (conf.equals(ButtonType.YES)) {
+                IORequest(txt, stage, true); // save the file before opening new one
             }
 
+            if (!conf.equals(ButtonType.CANCEL)) {
+                choose.setTitle("Open File");
+                File fOpen = choose.showOpenDialog(stage);
+
+                if (fOpen != null) {
+                    try {
+                        Reader reader = new InputStreamReader(new FileInputStream(fOpen));
+                        // come back to this later.
+                        StringBuilder sbuff = new StringBuilder();
+                        char[] buff = new char[500];
+                        for (int cr; (cr = reader.read(buff))!= -1;)
+                            sbuff.append(buff, 0, cr);
+                        
+                        txt.setText(sbuff.toString());
+
+
+                        reader.close();
+                    } catch (IOException ex) {
+                        ex.printStackTrace();
+                    }
+
+                } else {
+                    System.out.println("Cancelled");
+                }
+
+            }
         }
 
     }
 
- 
-    public void TextFormat(TextArea txt, Font fnt, Stage stage, String type) {}
-    
+    /**
+     * Confirmation alert asking to save text file
+     * 
+     * @return ButtonType  Returns the button choice: Yes, no, cancelled.
+     */
+    public ButtonType confirmation() {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION,
+                "There are unsaved changes. Would you like to save before closing the current file?", ButtonType.YES,
+                ButtonType.NO, ButtonType.CANCEL);
+
+        alert.setTitle("Unsaved Changes");
+        ButtonType res = alert.showAndWait().orElse(ButtonType.CANCEL);
+
+        return res;
+    }
+
+    /**
+     * Formats the text area with the selected type
+     * 
+     * @param text  TextArea being formatted
+     * @param fnt   Font of the textarea
+     * @param type
+     */
+    public void TextFormat(TextArea txt, Font fnt, Stage stage, String type) {
+
+    }
+
     @Override
     /**
      * Starting the GUI
+     * 
      * @param primaryStage The Stage object of the UI
      */
     public void start(Stage primaryStage) {
@@ -128,13 +172,9 @@ public class MainUI extends Application {
         mOpen.setOnAction(e -> {
             IORequest(this.txtInput, this.pStage, false);
         });
-        this.pStage.setOnCloseRequest(e -> {
+        this.pStage.setOnCloseRequest(e -> { // "x" button
             if (this.newChanges) {
-                Alert alert = new Alert(Alert.AlertType.CONFIRMATION, "Do you want to save changes before closing?",
-                        ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
-                
-                alert.setTitle("Unsaved Changes");
-                ButtonType res = alert.showAndWait().orElse(ButtonType.CANCEL);
+                ButtonType res = confirmation();
                 if (res.equals(ButtonType.YES)) {
                     System.out.println("Save requeted");
                     IORequest(this.txtInput, this.pStage, true);
@@ -142,7 +182,6 @@ public class MainUI extends Application {
                     System.out.println("No save. Close ");
                 else
                     e.consume();
-
             }
         });
 
@@ -182,4 +221,3 @@ public class MainUI extends Application {
     }
 
 }
-
