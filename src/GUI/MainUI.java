@@ -9,7 +9,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-
 import javafx.stage.FileChooser.ExtensionFilter;
 import javafx.application.Application;
 import javafx.scene.Scene;
@@ -28,12 +27,14 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.BorderPane;
+import Formats.*;
 
 public class MainUI extends Application {
     private TextArea txtInput;
     private Stage pStage;
-    private boolean newChanges = false;
-    private Font txtFont;
+    private boolean newChanges, isBold, isItalic = false;
+    private String family = "Arial";
+    private double fsize = 12;
 
     /**
      * Request to save/load to a file.
@@ -128,7 +129,24 @@ public class MainUI extends Application {
      * @param fnt   Font of the textarea
      * @param type
      */
-    public void TextFormat(TextArea txt, Font fnt, Stage stage, String type) {
+    public void TextFormat(TextArea txt, Stage stage, String type) {
+        FormatRequest fReqs = new FormatRequest();
+
+        switch(type.toLowerCase()){
+            case "bold":
+                fReqs.addFormat(new BoldCmd(txt, this.family, this.fsize, this.isBold, this.isItalic));
+                this.isBold = !this.isBold;
+                break;
+            case "italics":
+                fReqs.addFormat(new ItalicsCmd(txt, this.family, this.fsize, this.isBold, this.isItalic));
+                this.isItalic = !this.isItalic;
+                break;
+
+            case "fonts":
+                System.out.println("Font Menu requested..");
+                break;
+        }
+        fReqs.applyFormats();
 
     }
 
@@ -142,18 +160,17 @@ public class MainUI extends Application {
         this.pStage = new Stage();
         this.pStage.setTitle("JNote - Java-powered Notebook");
         BorderPane bPane = new BorderPane();
-
-        this.txtFont = Font.font("Arial", FontWeight.NORMAL, FontPosture.REGULAR, 15);
-
         this.txtInput = new TextArea();
-        this.txtInput.setFont(this.txtFont);
         this.txtInput.setWrapText(true);
+        this.txtInput.setFont(Font.font(this.family, FontWeight.NORMAL, FontPosture.REGULAR, this.fsize));
 
+        
         // ** Menu Objects **
         MenuBar mBar = new MenuBar();
 
         Menu mFile = new Menu("File");
         Menu mEdit = new Menu("Edit");
+        Menu mPref = new Menu("Preferences");
 
         MenuItem mNew = new MenuItem("New");
         MenuItem mSave = new MenuItem("Save");
@@ -186,13 +203,13 @@ public class MainUI extends Application {
         });
 
         mBold.setOnAction(e -> {
-            TextFormat(this.txtInput, this.txtFont, this.pStage, ((MenuItem) e.getSource()).getText());
+            TextFormat(this.txtInput, this.pStage, ((MenuItem) e.getSource()).getText());
         });
         mItalic.setOnAction(e -> {
-            TextFormat(this.txtInput, this.txtFont, this.pStage, ((MenuItem) e.getSource()).getText());
+            TextFormat(this.txtInput, this.pStage, ((MenuItem) e.getSource()).getText());
         });
         mFont.setOnAction(e -> {
-            TextFormat(this.txtInput, this.txtFont, this.pStage, ((MenuItem) e.getSource()).getText());
+            TextFormat(this.txtInput, this.pStage, ((MenuItem) e.getSource()).getText());
         });
 
         mNew.setAccelerator(new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN));
@@ -204,8 +221,8 @@ public class MainUI extends Application {
 
         // ** Add objects **
         mFile.getItems().addAll(mNew, mSave, mOpen);
-        mEdit.getItems().addAll(mFont, mBold, mItalic);
-        mBar.getMenus().addAll(mFile, mEdit);
+        mEdit.getItems().addAll(mFont, mBold, mItalic, mFind);
+        mBar.getMenus().addAll(mFile, mEdit, mPref);
 
         bPane.setTop(mBar);
         bPane.setCenter(this.txtInput);
