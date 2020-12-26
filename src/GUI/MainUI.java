@@ -1,10 +1,11 @@
+/**
+ * The main program to run the text editor. The GUI is implemented here
+ */
 package GUI;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -34,7 +35,7 @@ public class MainUI extends Application {
     private Stage pStage;
     private boolean newChanges, isBold, isItalic = false;
     private String family = "Arial";
-    private double fsize = 12;
+    private double fsize = 15;
 
     /**
      * Request to save/load to a file.
@@ -107,7 +108,7 @@ public class MainUI extends Application {
     }
 
     /**
-     * Confirmation alert asking to save text file
+     * Confirmation alert asking to save unchanged work
      * 
      * @return ButtonType  Returns the button choice: Yes, no, cancelled.
      */
@@ -123,11 +124,11 @@ public class MainUI extends Application {
     }
 
     /**
-     * Formats the text area with the selected type
+     * Formats the text area with selected formatting
      * 
      * @param text  TextArea being formatted
      * @param fnt   Font of the textarea
-     * @param type
+     * @param type  String containing the type of formatting
      */
     public void TextFormat(TextArea txt, Stage stage, String type) {
         FormatRequest fReqs = new FormatRequest();
@@ -163,15 +164,12 @@ public class MainUI extends Application {
         this.txtInput = new TextArea();
         this.txtInput.setWrapText(true);
         this.txtInput.setFont(Font.font(this.family, FontWeight.NORMAL, FontPosture.REGULAR, this.fsize));
-
         
         // ** Menu Objects **
         MenuBar mBar = new MenuBar();
-
         Menu mFile = new Menu("File");
         Menu mEdit = new Menu("Edit");
         Menu mPref = new Menu("Preferences");
-
         MenuItem mNew = new MenuItem("New");
         MenuItem mSave = new MenuItem("Save");
         MenuItem mOpen = new MenuItem("Open");
@@ -180,6 +178,11 @@ public class MainUI extends Application {
         MenuItem mFont = new MenuItem("Fonts");
         MenuItem mFind = new MenuItem("Find");
 
+        mFile.getItems().addAll(mNew, mSave, mOpen);
+        mEdit.getItems().addAll(mFont, mBold, mItalic, mFind);
+        mBar.getMenus().addAll(mFile, mEdit, mPref);
+
+        // ** Initialize Actions **
         mNew.setOnAction(e -> {
             System.out.println("New");
         });
@@ -219,15 +222,10 @@ public class MainUI extends Application {
         mItalic.setAccelerator(new KeyCodeCombination(KeyCode.I, KeyCombination.CONTROL_DOWN));
         mFind.setAccelerator(new KeyCodeCombination(KeyCode.F, KeyCombination.CONTROL_DOWN));
 
-        // ** Add objects **
-        mFile.getItems().addAll(mNew, mSave, mOpen);
-        mEdit.getItems().addAll(mFont, mBold, mItalic, mFind);
-        mBar.getMenus().addAll(mFile, mEdit, mPref);
-
         bPane.setTop(mBar);
         bPane.setCenter(this.txtInput);
 
-        // ** Some Initializations **
+        // ** Initialization **
         Scene myScene = new Scene(bPane, 1030, 600);
         this.pStage.setScene(myScene);
         this.pStage.show();
