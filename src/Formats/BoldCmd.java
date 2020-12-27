@@ -29,15 +29,9 @@ public class BoldCmd extends FormatCmd {
      * between normal and bold.
      */
     public void execute() {
-        FontPosture post = FontPosture.REGULAR;
-        FontWeight wght = FontWeight.BOLD;
+        FontPosture post = isItalic ? FontPosture.ITALIC: FontPosture.REGULAR;
+        FontWeight wght = isBold ? FontWeight.NORMAL : FontWeight.BOLD;
         
-        if (isBold){
-            wght = FontWeight.NORMAL;
-        }
-        if (isItalic){
-            post = FontPosture.ITALIC;
-        }
         Font fnt = Font.font(this.family, wght, post, this.size);
         this.txt.setFont(fnt);
     }
